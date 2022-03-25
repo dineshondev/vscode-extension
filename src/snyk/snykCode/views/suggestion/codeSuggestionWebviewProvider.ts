@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { OpenCommandIssueType } from '../../../common/commands/types';
 import { IConfiguration } from '../../../common/configuration/configuration';
 import {
   SNYK_IGNORE_ISSUE_COMMAND,
@@ -9,6 +10,7 @@ import {
 import { SNYK_VIEW_SUGGESTION_CODE } from '../../../common/constants/views';
 import { ErrorHandler } from '../../../common/error/errorHandler';
 import { ILog } from '../../../common/logger/interfaces';
+import { LearnService } from '../../../common/services/learnService';
 import { getNonce } from '../../../common/views/nonce';
 import { WebviewPanelSerializer } from '../../../common/views/webviewPanelSerializer';
 import { IWebViewProvider, WebviewProvider } from '../../../common/views/webviewProvider';
@@ -24,8 +26,7 @@ import { ICodeSuggestionWebviewProvider } from '../interfaces';
 
 export class CodeSuggestionWebviewProvider
   extends WebviewProvider<completeFileSuggestionType>
-  implements ICodeSuggestionWebviewProvider
-{
+  implements ICodeSuggestionWebviewProvider {
   // For consistency reasons, the single source of truth for the current suggestion is the
   // panel state. The following field is only used in
   private suggestion: completeFileSuggestionType | undefined;
@@ -64,6 +65,24 @@ export class CodeSuggestionWebviewProvider
     if (!found) this.disposePanel();
   }
 
+  async postLearnLessonMessage(suggestion: completeFileSuggestionType): Promise<void> {
+    if (this.panel && suggestion.isSecurityType) {
+      const learnService = new LearnService(suggestion, OpenCommandIssueType.CodeIssue, this.logger);
+      const lesson = await learnService.getLesson();
+      if (lesson) {
+        void this.panel.webview.postMessage({
+          type: 'setLesson',
+          args: { url: `${lesson.url}?loc=ide`, title: 'Learn about this vulnerability' },
+        });
+      } else {
+        void this.panel.webview.postMessage({
+          type: 'setLesson',
+          args: { url: 'https://learn.snyk.io?loc=ide', title: 'Security education with Snyk Learn' },
+        });
+      }
+    }
+  }
+
   async showPanel(suggestion: completeFileSuggestionType): Promise<void> {
     try {
       await this.focusSecondEditorGroup();
@@ -86,6 +105,7 @@ export class CodeSuggestionWebviewProvider
       this.panel.webview.html = this.getHtmlForWebview(this.panel.webview);
 
       await this.panel.webview.postMessage({ type: 'set', args: suggestion });
+      void this.postLearnLessonMessage(suggestion);
 
       this.panel.onDidDispose(() => this.onPanelDispose(), null, this.disposables);
       this.panel.onDidChangeViewState(() => this.checkVisibility(), undefined, this.disposables);
@@ -178,6 +198,7 @@ export class CodeSuggestionWebviewProvider
       ['arrow-right-dark', 'svg'],
       ['arrow-left-light', 'svg'],
       ['arrow-right-light', 'svg'],
+      ['learn-icon-dark', 'svg'],
     ].reduce<Record<string, string>>((accumulator: Record<string, string>, [name, ext]) => {
       const uri = this.getWebViewUri('media', 'images', `${name}.${ext}`); // todo move to media folder
       if (!uri) throw new Error('Image missing.');
@@ -195,6 +216,8 @@ export class CodeSuggestionWebviewProvider
     );
     const styleUri = this.getWebViewUri('media', 'views', 'snykCode', 'suggestion', 'suggestion.css');
     const styleVSCodeUri = this.getWebViewUri('media', 'views', 'common', 'vscode.css');
+    const learnStyleUri = this.getWebViewUri('media', 'views', 'common', 'learn.css');
+
     const nonce = getNonce();
     return `
   <!DOCTYPE html>
@@ -208,6 +231,7 @@ export class CodeSuggestionWebviewProvider
 
       <link href="${styleUri}" rel="stylesheet">
       <link href="${styleVSCodeUri}" rel="stylesheet">
+      <link href="${learnStyleUri}" rel="stylesheet">
   </head>
   <body>
       <div class="suggestion">
@@ -231,6 +255,10 @@ export class CodeSuggestionWebviewProvider
             <div id="lead-url" class="clickable hidden">
               <img class="icon" src="${images['icon-external']}" /> More info
             </div>
+          </div>
+          <div class="learn learn__code">
+            <img class="icon" src="${images['learn-icon-dark']}" />
+            <a class="learn--link"></a>
           </div>
         </section>
         <section class="delimiter-top" id="labels"></section>

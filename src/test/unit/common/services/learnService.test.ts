@@ -60,7 +60,8 @@ suite('CODE functionality', () => {
     test('invalid ecosystems returns all', () => {
       strictEqual(LearnService.convertCodeIdToEcosystem('notvalidecosystem/test'), 'all');
       strictEqual(LearnService.convertCodeIdToEcosystem(''), 'all');
-      strictEqual(LearnService.convertCodeIdToEcosystem((undefined as unknown) as string), 'all');
+      // @ts-expect-error - testing in case no string is given
+      strictEqual(LearnService.convertCodeIdToEcosystem(undefined), 'all');
     });
   });
 

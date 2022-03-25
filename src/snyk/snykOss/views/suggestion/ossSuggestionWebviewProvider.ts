@@ -106,7 +106,7 @@ export class OssSuggestionWebviewProvider extends WebviewProvider<OssIssueComman
       ['dark-high-severity', 'svg'],
       ['dark-medium-severity', 'svg'],
       ['dark-low-severity', 'svg'],
-      ['learn-icon', 'svg'],
+      ['learn-icon-light', 'svg'],
     ].reduce((accumulator: Record<string, string>, [name, ext]) => {
       const uri = this.getWebViewUri('media', 'images', `${name}.${ext}`);
       if (!uri) throw new Error('Image missing.');
@@ -123,6 +123,7 @@ export class OssSuggestionWebviewProvider extends WebviewProvider<OssIssueComman
       'ossSuggestionWebviewScript.js',
     );
     const styleUri = this.getWebViewUri('media', 'views', 'oss', 'suggestion', 'suggestion.css');
+    const learnStyleUri = this.getWebViewUri('media', 'views', 'common', 'learn.css');
 
     const nonce = getNonce();
 
@@ -139,6 +140,7 @@ export class OssSuggestionWebviewProvider extends WebviewProvider<OssIssueComman
 				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; img-src ${webview.cspSource} https:; script-src 'nonce-${nonce}';">
 
 				<link href="${styleUri}" rel="stylesheet">
+				<link href="${learnStyleUri}" rel="stylesheet">
 			</head>
 			<body>
         <div class="suggestion">
@@ -157,7 +159,7 @@ export class OssSuggestionWebviewProvider extends WebviewProvider<OssIssueComman
             <div class="suggestion-text"></div>
             <div class="identifiers"></div>
             <div class="learn">
-              <img class="icon" src="${images['learn-icon']}" />
+              <img class="icon" src="${images['learn-icon-light']}" />
               <a class="learn--link"></a>
             </div>
           </section>

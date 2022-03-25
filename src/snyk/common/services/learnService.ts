@@ -62,7 +62,8 @@ export class LearnService implements ILearnService {
   }
 
   static convertCodeIdToEcosystem(issueId: string): LessonEcosystem {
-    const ecosystem = (issueId || '').split(/\/|%2F/g)[0]; // %2F is the url encoding for /
+    if (!issueId) return 'all';
+    const ecosystem = issueId.split(/\/|%2F/g)[0]; // %2F is the url encoding for /
     if (isValidEcosystem(ecosystem)) {
       return ecosystem;
     } else {
@@ -101,7 +102,8 @@ export class LearnService implements ILearnService {
 
       const lessons = res.data;
       if (lessons.length) {
-        return lessons.sort(a => (a.ecosystem === this.ecosystem ? -1 : 0))[0];
+        const lessonWithClosestEcosystemMatch = lessons.sort(a => (a.ecosystem === this.ecosystem ? -1 : 0))[0];
+        return lessonWithClosestEcosystemMatch;
       } else {
         return null;
       }
