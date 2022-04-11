@@ -117,7 +117,10 @@ export class SnykCodeErrorHandler extends ErrorHandler implements ISnykCodeError
     callback: (error: Error) => void,
   ): Promise<void> {
     this.logger.error(`Connection error to Snyk Code. Try count: ${this.transientErrors + 1}.`);
-    if (this.transientErrors > MAX_CONNECTION_RETRIES) return this.generalErrorHandler(error, options, callback);
+    if (this.transientErrors > MAX_CONNECTION_RETRIES) {
+      this.generalErrorHandler(error, options, callback);
+      return;
+    }
 
     this.transientErrors += 1;
     setTimeout(() => {
