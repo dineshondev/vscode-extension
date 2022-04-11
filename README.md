@@ -253,7 +253,7 @@ After the extension is installed, you can set the following configurations for t
 
 ### Organization setting
 
-The value of organization setting `snyk.advanced.organization` must match the slug as displayed in the URL of your org in the Snyk UI: `https://app.snyk.io/org/[orgslugname]`. If this setting is not specified, preferred organization as defined in your [web account settings](https://app.snyk.io/account) will be used to run tests.
+The value of organization setting `snyk.advanced.organization` must match the URL slug as displayed in the URL of your org in the Snyk UI: `https://app.snyk.io/org/[orgslugname]`. If this setting is not specified, preferred organization as defined in your [web account settings](https://app.snyk.io/account) will be used to run tests.
 
 ### Create a .dcignore file
 
